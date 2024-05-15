@@ -1,30 +1,50 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view/>
+  <div>
+    <input  size="10" type="text"  v-model="recipient"> 
+  <input  size="100" type="text"   v-model="body">
+    <button @click="callCloudFunction">Send</button>
+    <div v-if="response">{{ response }}</div>
+  </div>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script>
+import { ref } from 'vue';
+import { useStore } from 'vuex';
 
-nav {
-  padding: 30px;
-}
+export default {
+  computed :{
+    recipient:{
+      get(){
+        return this.$store.state.recipient
+      },
+      set(newValue){
+        this.$store.dispatch('setRecipient',newValue)
+      }
+    },
+    body:{
+      get(){
+        return this.$store.state.body
+      },
+      set(newValue){
+        this.$store.dispatch('setBody',newValue)
+      }
+    }
+  },
 
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
+  setup() {
+    const response = ref(null);
+    const store = useStore();
+    const callCloudFunction = async () => {
+      try {
+       
+        const result = await store.dispatch('callGoogleCloudFunction');
+        response.value = result.data; 
+      } catch (error) {
+        console.error('Error calling Google Cloud Function:', error);
+      }
+    };
 
-nav a.router-link-exact-active {
-  color: #42b983;
-}
-</style>
+    return { response, callCloudFunction };
+  }
+};
+</script>
